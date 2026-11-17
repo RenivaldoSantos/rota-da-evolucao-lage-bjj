@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rota da Evolução — Lage BJJ</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🥋 Rota da Evolução <span>Lage BJJ</span></div>
+    <div id="status-rede" class="badge-rede online" role="status" aria-live="polite">
+      ● Online (Sincronizado)
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- TELA 1: LOGIN E ACESSO -->
+    <section id="tela-login" class="card tela ativa">
+      <h1>Acesso do Professor</h1>
+      <p class="subtitulo">Gestão de frequência no tatame e elegibilidade de bolsistas.</p>
+      <form id="form-login">
+        <label for="usuario">Usuário / E-mail</label>
+        <input type="text" id="usuario" value="william.panda@lagebjj.com.br" required />
+
+        <label for="senha">Senha de Acesso</label>
+        <input type="password" id="senha" value="••••••••" required />
+
+        <button type="submit" class="btn-primario btn-tatil">Entrar no Tatame</button>
+      </form>
+    </section>
+
+    <!-- TELA 2: CHAMADA TÁTIL NO TATAME -->
+    <section id="tela-chamada" class="card tela" hidden>
+      <div class="cabecalho-tela">
+        <h1>Chamada — Turma Adulto 19:30h</h1>
+        <button id="btn-simular-offline" type="button" class="btn-secundario">
+          Alternar Modo Offline
+        </button>
+      </div>
+
+      <label for="busca-aluno" class="sr-only">Buscar aluno por nome</label>
+      <input
+        type="search"
+        id="busca-aluno"
+        class="input-busca"
+        placeholder="🔍 Buscar aluno na turma..."
+      />
+
+      <ul id="lista-alunos" class="lista-alunos" aria-label="Lista de alunos da turma"></ul>
+    </section>
+
+    <!-- TELA 3: PERFIL E ELEGIBILIDADE -->
+    <section id="tela-perfil" class="card tela" hidden>
+      <button id="btn-voltar" type="button" class="btn-voltar">← Voltar para Chamada</button>
+      <div id="detalhe-aluno"></div>
+    </section>
+  </main>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
