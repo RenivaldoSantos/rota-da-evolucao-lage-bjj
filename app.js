@@ -8,8 +8,25 @@ const listaAlunosEl = document.getElementById("lista-alunos");
 const buscaInput = document.getElementById("busca-aluno");
 const statusRedeEl = document.getElementById("status-rede");
 
+/**
+ * Sanitiza strings dinâmicas antes de inserir no DOM para prevenir injeção de HTML/XSS.
+ */
+function escaparHTML(texto) {
+  const div = document.createElement("div");
+  div.textContent = String(texto);
+  return div.innerHTML;
+}
+
 document.getElementById("form-login").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const usuario = document.getElementById("usuario").value.trim();
+  const senha = document.getElementById("senha").value;
+
+  if (!usuario || senha.length < 4) {
+    alert("Informe um usuário válido e uma senha com pelo menos 4 caracteres.");
+    return;
+  }
+
   telaLogin.hidden = true;
   telaChamada.hidden = false;
   alunosCache = await listarAlunos();
@@ -18,22 +35,32 @@ document.getElementById("form-login").addEventListener("submit", async (e) => {
 
 document.getElementById("btn-simular-offline").addEventListener("click", () => {
   modoOffline = !modoOffline;
-  if (modoOffline) {
-    statusRedeEl.className = "badge-rede offline";
-    statusRedeEl.textContent = "▲ Offline (Salvo no Aparelho)";
-  } else {
-    statusRedeEl.className = "badge-rede online";
-    statusRedeEl.textContent = "● Online (Sincronizado)";
-  }
+  statusRedeEl.className = modoOffline ? "badge-rede offline" : "badge-rede online";
+  statusRedeEl.textContent = modoOffline
+    ? "▲ Offline (Salvo no Aparelho)"
+    : "● Online (Sincronizado)";
 });
 
 buscaInput.addEventListener("input", () => {
-  const termo = buscaInput.value.toLowerCase().trim();
-  const filtrados = alunosCache.filter((a) =>
-    a.nome.toLowerCase().includes(termo)
-  );
-  renderizarLista(filtrados);
+  renderizarLista(filtrarAlunosPorNome(buscaInput.value));
 });
+
+function filtrarAlunosPorNome(termoBusca) {
+  const termoNormalizado = termoBusca.toLowerCase().trim();
+  return alunosCache.filter((aluno) =>
+    aluno.nome.toLowerCase().includes(termoNormalizado)
+  );
+}
+
+async function alternarPresencaAluno(aluno) {
+  aluno.presenteHoje = !aluno.presenteHoje;
+  aluno.treinosConcluidos = Math.max(
+    0,
+    aluno.treinosConcluidos + (aluno.presenteHoje ? 1 : -1)
+  );
+  await salvarAluno(aluno);
+  renderizarLista(filtrarAlunosPorNome(buscaInput.value));
+}
 
 function renderizarLista(lista) {
   listaAlunosEl.innerHTML = "";
@@ -47,9 +74,9 @@ function renderizarLista(lista) {
     info.setAttribute("role", "button");
     info.setAttribute("tabindex", "0");
     info.innerHTML = `
-      <strong>${aluno.nome}</strong><br />
-      <small>${aluno.faixa} • ${aluno.treinosConcluidos}/${aluno.metaTreinos} treinos</small><br />
-      <span class="tag-vinculo">${aluno.vinculo}</span>
+      <strong>${escaparHTML(aluno.nome)}</strong><br />
+      <small>${escaparHTML(aluno.faixa)} • ${aluno.treinosConcluidos}/${aluno.metaTreinos} treinos</small><br />
+      <span class="tag-vinculo">${escaparHTML(aluno.vinculo)}</span>
     `;
     info.addEventListener("click", () => abrirPerfil(aluno));
 
@@ -61,16 +88,7 @@ function renderizarLista(lista) {
       ? "✓ PRESENÇA CONFIRMADA"
       : "+ Confirmar Presença";
 
-    btn.addEventListener("click", async () => {
-      aluno.presenteHoje = !aluno.presenteHoje;
-      aluno.treinosConcluidos += aluno.presenteHoje ? 1 : -1;
-      await salvarAluno(aluno);
-      renderizarLista(
-        alunosCache.filter((a) =>
-          a.nome.toLowerCase().includes(buscaInput.value.toLowerCase().trim())
-        )
-      );
-    });
+    btn.addEventListener("click", () => alternarPresencaAluno(aluno));
 
     li.appendChild(info);
     li.appendChild(btn);
@@ -89,9 +107,9 @@ function abrirPerfil(aluno) {
   const elegivel = aluno.treinosConcluidos >= aluno.metaTreinos;
 
   document.getElementById("detalhe-aluno").innerHTML = `
-    <h2>${aluno.nome}</h2>
-    <p><strong>Graduação Atual:</strong> ${aluno.faixa}</p>
-    <p><strong>Vínculo:</strong> ${aluno.vinculo}</p>
+    <h2>${escaparHTML(aluno.nome)}</h2>
+    <p><strong>Graduação Atual:</strong> ${escaparHTML(aluno.faixa)}</p>
+    <p><strong>Vínculo:</strong> ${escaparHTML(aluno.vinculo)}</p>
     <p><strong>Frequência Acumulada:</strong> ${aluno.treinosConcluidos} de ${aluno.metaTreinos} treinos (${percentual}%)</p>
     <div class="barra-progresso" role="progressbar" aria-valuenow="${percentual}" aria-valuemin="0" aria-valuemax="100">
       <div class="barra-preenchida" style="width: ${percentual}%"></div>
