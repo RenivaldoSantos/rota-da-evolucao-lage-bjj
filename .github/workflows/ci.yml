@@ -1,0 +1,26 @@
+name: CI - Build e Testes Automatizados
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar ambiente Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validar integridade dos arquivos do MVP
+        run: test -f index.html && test -f style.css && test -f db.js && test -f app.js && test -f tests.js
+
+      - name: Executar testes unitários e de integração
+        run: node --test tests.js
